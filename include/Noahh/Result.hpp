@@ -1,39 +1,42 @@
 #pragma once
-#include <concepts>
-#include <optional>
-#include <stdexcept>
-#include <utility>
-#include <variant>
+#ifndef NOAHH_RESULT_HPP
+    #define NOAHH_RESULT_HPP
 
-#if !defined(NOAHH_CONCAT)
-    #define NOAHH_CONCAT2(x, y) x##y
-    #define NOAHH_CONCAT(x, y) NOAHH_CONCAT2(x, y)
-#endif
+    #include <concepts>
+    #include <optional>
+    #include <stdexcept>
+    #include <utility>
+    #include <variant>
 
-#if !defined(NOAHH_UNWRAP)
-    // Use gcc's scope expression feature, which makes this macro
-    // really nice to use. Unfortunately not available on MSVC
-    #if defined(__GNUC__) || defined(__clang__)
-        #define NOAHH_UNWRAP(...)                                               \
-            ({                                                                  \
-                auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                 \
-                if (NOAHH_CONCAT(res, __LINE__).isErr())                        \
-                    return noahh::Err(NOAHH_CONCAT(res, __LINE__).unwrapErr()); \
-                NOAHH_CONCAT(res, __LINE__).unwrap();                           \
-            })
-    #else
-        #define NOAHH_UNWRAP(...) \
-            if (auto res = __VA_ARGS__; res.isErr()) return noahh::Err(res.unwrapErr())
+    #if !defined(NOAHH_CONCAT)
+        #define NOAHH_CONCAT2(x, y) x##y
+        #define NOAHH_CONCAT(x, y) NOAHH_CONCAT2(x, y)
     #endif
-#endif
 
-#if !defined(NOAHH_UNWRAP_INTO)
-    #define NOAHH_UNWRAP_INTO(variable, ...)                            \
-        auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                 \
-        if (NOAHH_CONCAT(res, __LINE__).isErr())                        \
-            return noahh::Err(NOAHH_CONCAT(res, __LINE__).unwrapErr()); \
-        variable = NOAHH_CONCAT(res, __LINE__).unwrap()
-#endif
+    #if !defined(NOAHH_UNWRAP)
+        // Use gcc's scope expression feature, which makes this macro
+        // really nice to use. Unfortunately not available on MSVC
+        #if defined(__GNUC__) || defined(__clang__)
+            #define NOAHH_UNWRAP(...)                                               \
+                ({                                                                  \
+                    auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                 \
+                    if (NOAHH_CONCAT(res, __LINE__).isErr())                        \
+                        return noahh::Err(NOAHH_CONCAT(res, __LINE__).unwrapErr()); \
+                    NOAHH_CONCAT(res, __LINE__).unwrap();                           \
+                })
+        #else
+            #define NOAHH_UNWRAP(...) \
+                if (auto res = __VA_ARGS__; res.isErr()) return noahh::Err(res.unwrapErr())
+        #endif
+    #endif
+
+    #if !defined(NOAHH_UNWRAP_INTO)
+        #define NOAHH_UNWRAP_INTO(variable, ...)                            \
+            auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                 \
+            if (NOAHH_CONCAT(res, __LINE__).isErr())                        \
+                return noahh::Err(NOAHH_CONCAT(res, __LINE__).unwrapErr()); \
+            variable = NOAHH_CONCAT(res, __LINE__).unwrap()
+    #endif
 
 namespace noahh {
     template <class OkType, class ErrType>
@@ -1314,3 +1317,5 @@ namespace noahh {
         }
     }
 }
+
+#endif // NOAHH_RESULT_HPP
