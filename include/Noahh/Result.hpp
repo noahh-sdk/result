@@ -7,6 +7,7 @@
     #include <sstream>
     #include <stdexcept>
     #include <string>
+    #include <tuple>
     #include <utility>
     #include <variant>
 
@@ -71,6 +72,18 @@
             if (NOAHH_CONCAT(res, __LINE__).isOk())                         \
                 variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(); \
             else
+    #endif
+
+    #if !defined(NOAHH_UNWRAP_EITHER)
+        #define NOAHH_UNWRAP_EITHER(okVariable, errVariable, ...)                           \
+            auto [okVariable, errVariable, NOAHH_CONCAT(res, __LINE__)] = std::make_tuple(  \
+                noahh::impl::ResultOkType<decltype(__VA_ARGS__)>{},                         \
+                noahh::impl::ResultErrType<decltype(__VA_ARGS__)>{},                        \
+                (__VA_ARGS__)                                                               \
+            );                                                                              \
+            NOAHH_CONCAT(res, __LINE__).isOk() &&                                           \
+                    (okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), true) || \
+                (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), false)
     #endif
 
 namespace noahh {
