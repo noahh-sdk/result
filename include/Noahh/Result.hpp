@@ -30,7 +30,7 @@
             })
     #else
         #define NOAHH_UNWRAP(...) \
-            if (auto res = __VA_ARGS__; res.isErr()) return noahh::Err(std::move(res).unwrapErr())
+            if (auto res = __VA_ARGS__; res.isErr()) return std::move(res).asErr()
     #endif
 #endif
 
