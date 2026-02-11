@@ -1,99 +1,132 @@
-#pragma once
 #ifndef NOAHH_RESULT_HPP
-    #define NOAHH_RESULT_HPP
+#define NOAHH_RESULT_HPP
 
-    #include <concepts>
-    #include <optional>
-    #include <sstream>
-    #include <stdexcept>
-    #include <string>
-    #include <tuple>
-    #include <type_traits>
-    #include <utility>
-    #include <variant>
+#include <concepts>
+#include <optional>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+#include <variant>
 
-    #if !defined(NOAHH_CONCAT)
-        #define NOAHH_CONCAT2(x, y) x##y
-        #define NOAHH_CONCAT(x, y) NOAHH_CONCAT2(x, y)
+#if !defined(NOAHH_CONCAT)
+    #define NOAHH_CONCAT2(x, y) x##y
+    #define NOAHH_CONCAT(x, y) NOAHH_CONCAT2(x, y)
+#endif
+
+#if !defined(NOAHH_UNWRAP)
+    // Use gcc's scope expression feature, which makes this macro
+    // really nice to use. Unfortunately not available on MSVC
+    #if defined(__GNUC__) || defined(__clang__)
+        #define NOAHH_UNWRAP(...)                                                          \
+            ({                                                                             \
+                auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                            \
+                if (NOAHH_CONCAT(res, __LINE__).isErr())                                   \
+                    return noahh::Err(std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr()); \
+                std::move(NOAHH_CONCAT(res, __LINE__)).unwrap();                           \
+            })
+    #else
+        #define NOAHH_UNWRAP(...) \
+            if (auto res = __VA_ARGS__; res.isErr()) return noahh::Err(std::move(res).unwrapErr())
     #endif
+#endif
 
-    #if !defined(NOAHH_UNWRAP)
-        // Use gcc's scope expression feature, which makes this macro
-        // really nice to use. Unfortunately not available on MSVC
-        #if defined(__GNUC__) || defined(__clang__)
-            #define NOAHH_UNWRAP(...)                                                          \
-                ({                                                                             \
-                    auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                            \
-                    if (NOAHH_CONCAT(res, __LINE__).isErr())                                   \
-                        return noahh::Err(std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr()); \
-                    std::move(NOAHH_CONCAT(res, __LINE__)).unwrap();                           \
-                })
-        #else
-            #define NOAHH_UNWRAP(...) \
-                if (auto res = __VA_ARGS__; res.isErr()) return noahh::Err(res.unwrapErr())
-        #endif
-    #endif
+#if !defined(NOAHH_UNWRAP_INTO)
+    #define NOAHH_UNWRAP_INTO(variable, ...)                                       \
+        auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                            \
+        if (NOAHH_CONCAT(res, __LINE__).isErr())                                   \
+            return noahh::Err(std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr()); \
+        variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap()
+#endif
 
-    #if !defined(NOAHH_UNWRAP_INTO)
-        #define NOAHH_UNWRAP_INTO(variable, ...)                                       \
-            auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                            \
-            if (NOAHH_CONCAT(res, __LINE__).isErr())                                   \
-                return noahh::Err(std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr()); \
-            variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap()
-    #endif
+#if !defined(NOAHH_UNWRAP_IF_OK)
+    #define NOAHH_UNWRAP_IF_OK(variable, ...)                                                      \
+        auto [variable, NOAHH_CONCAT(res, __LINE__)] = std::make_pair(                             \
+            noahh::impl::ResultOkType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{}, (__VA_ARGS__) \
+        );                                                                                         \
+        NOAHH_CONCAT(res, __LINE__).isOk() &&                                                      \
+            (variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), true)
+#endif
 
-    #if !defined(NOAHH_UNWRAP_IF_OK)
-        #define NOAHH_UNWRAP_IF_OK(variable, ...)                                        \
-            auto [variable, NOAHH_CONCAT(res, __LINE__)] = std::make_pair(               \
-                noahh::impl::ResultOkType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{}, \
-                (__VA_ARGS__)                                                            \
-            );                                                                           \
-            NOAHH_CONCAT(res, __LINE__).isOk() &&                                        \
-                (variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), true)
-    #endif
+#if !defined(NOAHH_UNWRAP_INTO_IF_OK)
+    #define NOAHH_UNWRAP_INTO_IF_OK(variable, ...)        \
+        auto NOAHH_CONCAT(res, __LINE__) = (__VA_ARGS__); \
+        NOAHH_CONCAT(res, __LINE__).isOk() &&             \
+            (variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), true)
+#endif
 
-    #if !defined(NOAHH_UNWRAP_IF_ERR)
-        #define NOAHH_UNWRAP_IF_ERR(variable, ...)                                        \
-            auto [variable, NOAHH_CONCAT(res, __LINE__)] = std::make_pair(                \
-                noahh::impl::ResultErrType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{}, \
-                (__VA_ARGS__)                                                             \
-            );                                                                            \
-            NOAHH_CONCAT(res, __LINE__).isErr() &&                                        \
-                (variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), true)
-    #endif
+#if !defined(NOAHH_UNWRAP_IF_ERR)
+    #define NOAHH_UNWRAP_IF_ERR(variable, ...)                                                      \
+        auto [variable, NOAHH_CONCAT(res, __LINE__)] = std::make_pair(                              \
+            noahh::impl::ResultErrType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{}, (__VA_ARGS__) \
+        );                                                                                          \
+        NOAHH_CONCAT(res, __LINE__).isErr() &&                                                      \
+            (variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), true)
+#endif
 
-    #if !defined(NOAHH_UNWRAP_IF_SOME)
-        #define NOAHH_UNWRAP_IF_SOME(variable, ...)                                      \
-            auto [variable, NOAHH_CONCAT(res, __LINE__)] = std::make_pair(               \
-                noahh::impl::OptionalType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{}, \
-                (__VA_ARGS__)                                                            \
-            );                                                                           \
-            NOAHH_CONCAT(res, __LINE__).has_value() &&                                   \
-                (variable = std::move(NOAHH_CONCAT(res, __LINE__)).value(), true)
-    #endif
+#if !defined(NOAHH_UNWRAP_INTO_IF_ERR)
+    #define NOAHH_UNWRAP_INTO_IF_ERR(variable, ...)       \
+        auto NOAHH_CONCAT(res, __LINE__) = (__VA_ARGS__); \
+        NOAHH_CONCAT(res, __LINE__).isErr() &&            \
+            (variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), true)
+#endif
 
-    #if !defined(NOAHH_UNWRAP_OR_ELSE)
-        #define NOAHH_UNWRAP_OR_ELSE(okVariable, errVariable, ...)                                  \
-            noahh::impl::ResultOkType<std::remove_cvref_t<decltype(__VA_ARGS__)>> okVariable;       \
-            auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                                         \
-            if (noahh::impl::ResultErrType<std::remove_cvref_t<decltype(__VA_ARGS__)>> errVariable; \
-                NOAHH_CONCAT(res, __LINE__).isErr() &&                                              \
-                    (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), true) ||     \
-                (okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), false))
+#if !defined(NOAHH_UNWRAP_IF_SOME)
+    #define NOAHH_UNWRAP_IF_SOME(variable, ...)                                                    \
+        auto [variable, NOAHH_CONCAT(res, __LINE__)] = std::make_pair(                             \
+            noahh::impl::OptionalType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{}, (__VA_ARGS__) \
+        );                                                                                         \
+        NOAHH_CONCAT(res, __LINE__).has_value() &&                                                 \
+            (variable = std::move(NOAHH_CONCAT(res, __LINE__)).value(), true)
+#endif
 
-    #endif
+#if !defined(NOAHH_UNWRAP_INTO_IF_SOME)
+    #define NOAHH_UNWRAP_INTO_IF_SOME(variable, ...)      \
+        auto NOAHH_CONCAT(res, __LINE__) = (__VA_ARGS__); \
+        NOAHH_CONCAT(res, __LINE__).has_value() &&        \
+            (variable = std::move(NOAHH_CONCAT(res, __LINE__)).value(), true)
+#endif
 
-    #if !defined(NOAHH_UNWRAP_EITHER)
-        #define NOAHH_UNWRAP_EITHER(okVariable, errVariable, ...)                           \
-            auto [okVariable, errVariable, NOAHH_CONCAT(res, __LINE__)] = std::make_tuple(  \
-                noahh::impl::ResultOkType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{},    \
-                noahh::impl::ResultErrType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{},   \
-                (__VA_ARGS__)                                                               \
-            );                                                                              \
-            NOAHH_CONCAT(res, __LINE__).isOk() &&                                           \
-                    (okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), true) || \
-                (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), false)
-    #endif
+#if !defined(NOAHH_UNWRAP_OR_ELSE)
+    #define NOAHH_UNWRAP_OR_ELSE(okVariable, errVariable, ...)                                  \
+        noahh::impl::ResultOkType<std::remove_cvref_t<decltype(__VA_ARGS__)>> okVariable;       \
+        auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                                         \
+        if (noahh::impl::ResultErrType<std::remove_cvref_t<decltype(__VA_ARGS__)>> errVariable; \
+            NOAHH_CONCAT(res, __LINE__).isErr() &&                                              \
+                (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), true) ||     \
+            (okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), false))
+#endif
+
+#if !defined(NOAHH_UNWRAP_INTO_OR_ELSE)
+    #define NOAHH_UNWRAP_INTO_OR_ELSE(okVariable, errVariable, ...)                             \
+        auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                                         \
+        if (noahh::impl::ResultErrType<std::remove_cvref_t<decltype(__VA_ARGS__)>> errVariable; \
+            NOAHH_CONCAT(res, __LINE__).isErr() &&                                              \
+                (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), true) ||     \
+            (okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), false))
+#endif
+
+#if !defined(NOAHH_UNWRAP_EITHER)
+    #define NOAHH_UNWRAP_EITHER(okVariable, errVariable, ...)                           \
+        auto [okVariable, errVariable, NOAHH_CONCAT(res, __LINE__)] = std::make_tuple(  \
+            noahh::impl::ResultOkType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{},    \
+            noahh::impl::ResultErrType<std::remove_cvref_t<decltype(__VA_ARGS__)>>{},   \
+            (__VA_ARGS__)                                                               \
+        );                                                                              \
+        NOAHH_CONCAT(res, __LINE__).isOk() &&                                           \
+                (okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), true) || \
+            (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), false)
+#endif
+
+#if !defined(NOAHH_UNWRAP_INTO_EITHER)
+    #define NOAHH_UNWRAP_INTO_EITHER(okVariable, errVariable, ...)                      \
+        auto NOAHH_CONCAT(res, __LINE__) = (__VA_ARGS__);                               \
+        NOAHH_CONCAT(res, __LINE__).isOk() &&                                           \
+                (okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), true) || \
+            (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), false)
+#endif
 
 namespace noahh {
     template <class OkType, class ErrType>
