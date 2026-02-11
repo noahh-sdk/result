@@ -11,6 +11,7 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
+#include <functional>
 
 #if !defined(NOAHH_CONCAT)
     #define NOAHH_CONCAT2(x, y) x##y
