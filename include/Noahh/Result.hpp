@@ -64,8 +64,8 @@
                 (variable = std::move(NOAHH_CONCAT(res, __LINE__)).value(), true)
     #endif
 
-    #if !defined(NOAHH_UNWRAP_INTO_ELSE)
-        #define NOAHH_UNWRAP_INTO_ELSE(variable, ...)                       \
+    #if !defined(NOAHH_UNWRAP_OR_ELSE)
+        #define NOAHH_UNWRAP_OR_ELSE(variable, ...)                         \                     \
             noahh::impl::ResultOkType<decltype(__VA_ARGS__)> variable;      \
             auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                 \
             if (NOAHH_CONCAT(res, __LINE__).isOk())                         \
