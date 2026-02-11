@@ -24,7 +24,7 @@
                     auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                            \
                     if (NOAHH_CONCAT(res, __LINE__).isErr())                                   \
                         return noahh::Err(std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr()); \
-                    std::move(NOAHH_CONCAT(res, __LINE__)).unwrap();                           \                        \
+                    std::move(NOAHH_CONCAT(res, __LINE__)).unwrap();                           \
                 })
         #else
             #define NOAHH_UNWRAP(...) \
@@ -234,9 +234,6 @@ namespace noahh {
         };
 
         template <class Type>
-        concept IsResult = IsResultImpl<Type>::value;
-
-        template <class Type>
         using ResultOkType = typename IsResultImpl<Type>::OkType;
 
         template <class Type>
@@ -249,6 +246,9 @@ namespace noahh {
         template <class Type>
         concept IsStringStreamable = requires(std::stringstream ss, Type t) { ss << t; };
     }
+
+    template <class Type>
+    concept IsResult = impl::IsResultImpl<Type>::value;
 
     /// @brief Constructs a new Ok value
     /// @param ok the value to wrap in an Ok
@@ -1241,7 +1241,7 @@ namespace noahh {
         {
             return this->unwrap();
         }
-        
+
         /// @brief Returns true if the Result is Ok and the Ok value satisfies the predicate
         /// @param predicate the predicate to check the Ok value against
         /// @return true if the Result is Ok and the Ok value satisfies the predicate
@@ -1591,7 +1591,7 @@ namespace noahh {
         /// @param operation the operation to perform if this Result is Ok
         /// @return the result of the operation if this Result is Ok, otherwise this Result
         template <class Operation>
-            requires(std::invocable<Operation, OkType> && impl::IsResult<std::invoke_result_t<Operation, OkType>> && std::convertible_to<ErrType, impl::ResultErrType<std::invoke_result_t<Operation, OkType>>>)
+            requires(std::invocable<Operation, OkType> && IsResult<std::invoke_result_t<Operation, OkType>> && std::convertible_to<ErrType, impl::ResultErrType<std::invoke_result_t<Operation, OkType>>>)
         constexpr std::invoke_result_t<Operation, OkType> andThen(Operation&& operation
         ) && noexcept(noexcept(operation(std::declval<OkType>()))) {
             if (this->isOk()) {
@@ -1606,7 +1606,7 @@ namespace noahh {
         /// @param operation the operation to perform if this Result is Ok
         /// @return the result of the operation if this Result is Ok, otherwise this Result
         template <class Operation>
-            requires(std::invocable<Operation, OkType> && impl::IsResult<std::invoke_result_t<Operation, OkType>> && std::convertible_to<ErrType, impl::ResultErrType<std::invoke_result_t<Operation, OkType>>>)
+            requires(std::invocable<Operation, OkType> && IsResult<std::invoke_result_t<Operation, OkType>> && std::convertible_to<ErrType, impl::ResultErrType<std::invoke_result_t<Operation, OkType>>>)
         constexpr std::invoke_result_t<Operation, OkType> andThen(Operation&& operation
         ) const& noexcept(noexcept(operation(std::declval<OkType>()))) {
             if (this->isOk()) {
@@ -1621,7 +1621,7 @@ namespace noahh {
         /// @param operation the operation to perform if this Result is Ok
         /// @return the result of the operation if this Result is Ok, otherwise this Result
         template <class Operation>
-            requires(std::invocable<Operation> && impl::IsResult<std::invoke_result_t<Operation>> && std::convertible_to<ErrType, impl::ResultErrType<std::invoke_result_t<Operation>>>)
+            requires(std::invocable<Operation> && IsResult<std::invoke_result_t<Operation>> && std::convertible_to<ErrType, impl::ResultErrType<std::invoke_result_t<Operation>>>)
         constexpr std::invoke_result_t<Operation> andThen(Operation&& operation
         ) && noexcept(noexcept(operation())) {
             if (this->isOk()) {
@@ -1636,7 +1636,7 @@ namespace noahh {
         /// @param operation the operation to perform if this Result is Ok
         /// @return the result of the operation if this Result is Ok, otherwise this Result
         template <class Operation>
-            requires(std::invocable<Operation> && impl::IsResult<std::invoke_result_t<Operation>> && std::convertible_to<ErrType, impl::ResultErrType<std::invoke_result_t<Operation>>>)
+            requires(std::invocable<Operation> && IsResult<std::invoke_result_t<Operation>> && std::convertible_to<ErrType, impl::ResultErrType<std::invoke_result_t<Operation>>>)
         constexpr std::invoke_result_t<Operation> andThen(Operation&& operation
         ) const& noexcept(noexcept(operation())) {
             if (this->isOk()) {
@@ -1677,7 +1677,7 @@ namespace noahh {
         /// @param operation the operation to perform if this Result is Err
         /// @return the result of the operation if this Result is Err, otherwise this Result
         template <class Operation>
-            requires(std::invocable<Operation, ErrType> && impl::IsResult<std::invoke_result_t<Operation, ErrType>> && std::convertible_to<OkType, impl::ResultOkType<std::invoke_result_t<Operation, ErrType>>>)
+            requires(std::invocable<Operation, ErrType> && IsResult<std::invoke_result_t<Operation, ErrType>> && std::convertible_to<OkType, impl::ResultOkType<std::invoke_result_t<Operation, ErrType>>>)
         constexpr std::invoke_result_t<Operation, ErrType> orElse(Operation&& operation
         ) && noexcept(noexcept(operation(std::declval<ErrType>()))) {
             if (this->isOk()) {
@@ -1692,7 +1692,7 @@ namespace noahh {
         /// @param operation the operation to perform if this Result is Err
         /// @return the result of the operation if this Result is Err, otherwise this Result
         template <class Operation>
-            requires(std::invocable<Operation, ErrType> && impl::IsResult<std::invoke_result_t<Operation, ErrType>> && std::convertible_to<OkType, impl::ResultOkType<std::invoke_result_t<Operation, ErrType>>>)
+            requires(std::invocable<Operation, ErrType> && IsResult<std::invoke_result_t<Operation, ErrType>> && std::convertible_to<OkType, impl::ResultOkType<std::invoke_result_t<Operation, ErrType>>>)
         constexpr std::invoke_result_t<Operation, ErrType> orElse(Operation&& operation
         ) const& noexcept(noexcept(operation(std::declval<ErrType>()))) {
             if (this->isOk()) {
@@ -1707,7 +1707,7 @@ namespace noahh {
         /// @param operation the operation to perform if this Result is Err
         /// @return the result of the operation if this Result is Err, otherwise this Result
         template <class Operation>
-            requires(std::invocable<Operation> && impl::IsResult<std::invoke_result_t<Operation>> && std::convertible_to<OkType, impl::ResultOkType<std::invoke_result_t<Operation>>>)
+            requires(std::invocable<Operation> && IsResult<std::invoke_result_t<Operation>> && std::convertible_to<OkType, impl::ResultOkType<std::invoke_result_t<Operation>>>)
         constexpr std::invoke_result_t<Operation> orElse(Operation&& operation
         ) && noexcept(noexcept(operation())) {
             if (this->isOk()) {
@@ -1722,7 +1722,7 @@ namespace noahh {
         /// @param operation the operation to perform if this Result is Err
         /// @return the result of the operation if this Result is Err, otherwise this Result
         template <class Operation>
-            requires(std::invocable<Operation> && impl::IsResult<std::invoke_result_t<Operation>> && std::convertible_to<OkType, impl::ResultOkType<std::invoke_result_t<Operation>>>)
+            requires(std::invocable<Operation> && IsResult<std::invoke_result_t<Operation>> && std::convertible_to<OkType, impl::ResultOkType<std::invoke_result_t<Operation>>>)
         constexpr std::invoke_result_t<Operation> orElse(Operation&& operation
         ) const& noexcept(noexcept(operation())) {
             if (this->isOk()) {
@@ -1779,7 +1779,7 @@ namespace noahh {
         /// @return the inner Result if the Result is Ok, otherwise the outer Result
         constexpr Result<impl::ResultOkType<OkType>, ErrType> flatten(
         ) && noexcept(std::is_nothrow_move_constructible_v<OkType> && std::is_nothrow_move_constructible_v<ErrType>)
-            requires(impl::IsResult<OkType> && std::same_as<ErrType, impl::ResultErrType<OkType>>)
+            requires(IsResult<OkType> && std::same_as<ErrType, impl::ResultErrType<OkType>>)
         {
             if (this->isOk()) {
                 return std::move(*this).unwrap();
@@ -1793,7 +1793,7 @@ namespace noahh {
         /// @return the inner Result if the Result is Ok, otherwise the outer Result
         constexpr Result<impl::ResultOkType<OkType>, ErrType> flatten(
         ) const& noexcept(std::is_nothrow_move_constructible_v<OkType> && std::is_nothrow_move_constructible_v<ErrType>)
-            requires(impl::IsResult<OkType> && std::same_as<ErrType, impl::ResultErrType<OkType>>)
+            requires(IsResult<OkType> && std::same_as<ErrType, impl::ResultErrType<OkType>>)
         {
             if (this->isOk()) {
                 return this->unwrap();
