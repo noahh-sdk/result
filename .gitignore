@@ -1,0 +1,11 @@
+## Cmake.gitignore
+
+build/
+
+## MacOS.gitignore
+
+**/.DS_Store
+
+## VSCode.gitignore
+
+.vscode/
