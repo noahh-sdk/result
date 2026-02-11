@@ -270,3 +270,18 @@ TEST_CASE("Normal") {
         REQUIRE(res4.unwrapErr() == "Division by zero");
     }
 }
+
+    SECTION("equality") {
+        Result<float, std::string> res1 = Ok(32.f);
+        Result<float, std::string> res2 = Ok(16.f);
+        Result<float, std::string> res3 = Err("Division by zero");
+
+        REQUIRE(res1 == res1);
+        REQUIRE(res1 != res2);
+        REQUIRE(res1 != res3);
+        REQUIRE(res1 == Ok(32.f));
+        REQUIRE(res1 != Ok(16.f));
+        REQUIRE(res1 != Err("Division by zero"));
+        REQUIRE(res3 == Err("Division by zero"));
+        // REQUIRE(res3 != Err(32.f)); // compilation error
+    }
