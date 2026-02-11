@@ -48,7 +48,7 @@
 #endif
 
 #if !defined(NOAHH_UNWRAP_INTO)
-    #define NOAHH_UNWRAP_INTO(...) NOAHH_UNWRAP_INTO_BASE(return, __VA_ARGS__)
+    #define NOAHH_UNWRAP_INTO(variable, ...) NOAHH_UNWRAP_INTO_BASE(return, variable, __VA_ARGS__)
 #endif
 
 #if !defined(NOAHH_CO_UNWRAP)
@@ -56,7 +56,7 @@
 #endif
 
 #if !defined(NOAHH_CO_UNWRAP_INTO)
-    #define NOAHH_CO_UNWRAP_INTO(...) NOAHH_UNWRAP_INTO_BASE(co_return, __VA_ARGS__)
+    #define NOAHH_CO_UNWRAP_INTO(variable, ...) NOAHH_UNWRAP_INTO_BASE(co_return, variable, __VA_ARGS__)
 #endif
 
 #if !defined(NOAHH_UNWRAP_IF_OK)
