@@ -18,29 +18,45 @@
     #define NOAHH_CONCAT(x, y) NOAHH_CONCAT2(x, y)
 #endif
 
-#if !defined(NOAHH_UNWRAP)
+#if !defined(NOAHH_UNWRAP_BASE)
     // Use gcc's scope expression feature, which makes this macro
     // really nice to use. Unfortunately not available on MSVC
     #if defined(__GNUC__) || defined(__clang__)
-        #define NOAHH_UNWRAP(...)                                                          \
+        #define NOAHH_UNWRAP_BASE(Return_, ...)                                            \
             ({                                                                             \
                 auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                            \
                 if (NOAHH_CONCAT(res, __LINE__).isErr())                                   \
-                    return std::move(NOAHH_CONCAT(res, __LINE__)).asErr();                 \
+                    Return_ std::move(NOAHH_CONCAT(res, __LINE__)).asErr();                \
                 std::move(NOAHH_CONCAT(res, __LINE__)).unwrap();                           \
             })
     #else
-        #define NOAHH_UNWRAP(...) \
-            if (auto res = __VA_ARGS__; res.isErr()) return std::move(res).asErr()
+        #define NOAHH_UNWRAP_BASE(Return_, ...) \
+            if (auto res = __VA_ARGS__; res.isErr()) Return_ std::move(res).asErr()
     #endif
 #endif
 
-#if !defined(NOAHH_UNWRAP_INTO)
-    #define NOAHH_UNWRAP_INTO(variable, ...)                                       \
+#if !defined(NOAHH_UNWRAP_INTO_BASE)
+    #define NOAHH_UNWRAP_INTO_BASE(Return_, variable, ...)                         \
         auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                            \
         if (NOAHH_CONCAT(res, __LINE__).isErr())                                   \
-            return std::move(NOAHH_CONCAT(res, __LINE__)).asErr();                 \
+            Return_ std::move(NOAHH_CONCAT(res, __LINE__)).asErr();                \
         variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap()
+#endif
+
+#if !defined(NOAHH_UNWRAP)
+    #define NOAHH_UNWRAP(...) NOAHH_UNWRAP_BASE(return, __VA_ARGS__)
+#endif
+
+#if !defined(NOAHH_UNWRAP_INTO)
+    #define NOAHH_UNWRAP_INTO(...) NOAHH_UNWRAP_INTO_BASE(return, __VA_ARGS__)
+#endif
+
+#if !defined(NOAHH_CO_UNWRAP)
+    #define NOAHH_CO_UNWRAP(...) NOAHH_UNWRAP_BASE(co_return, __VA_ARGS__)
+#endif
+
+#if !defined(NOAHH_CO_UNWRAP_INTO)
+    #define NOAHH_CO_UNWRAP_INTO(...) NOAHH_UNWRAP_INTO_BASE(co_return, __VA_ARGS__)
 #endif
 
 #if !defined(NOAHH_UNWRAP_IF_OK)
