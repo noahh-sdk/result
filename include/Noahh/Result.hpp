@@ -19,12 +19,12 @@
         // Use gcc's scope expression feature, which makes this macro
         // really nice to use. Unfortunately not available on MSVC
         #if defined(__GNUC__) || defined(__clang__)
-            #define NOAHH_UNWRAP(...)                                               \
-                ({                                                                  \
-                    auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                 \
-                    if (NOAHH_CONCAT(res, __LINE__).isErr())                        \
-                        return noahh::Err(NOAHH_CONCAT(res, __LINE__).unwrapErr()); \
-                    NOAHH_CONCAT(res, __LINE__).unwrap();                           \
+            #define NOAHH_UNWRAP(...)                                                          \
+                ({                                                                             \
+                    auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                            \
+                    if (NOAHH_CONCAT(res, __LINE__).isErr())                                   \
+                        return noahh::Err(std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr()); \
+                    std::move(NOAHH_CONCAT(res, __LINE__)).unwrap();                           \                        \
                 })
         #else
             #define NOAHH_UNWRAP(...) \
@@ -33,11 +33,11 @@
     #endif
 
     #if !defined(NOAHH_UNWRAP_INTO)
-        #define NOAHH_UNWRAP_INTO(variable, ...)                            \
-            auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                 \
-            if (NOAHH_CONCAT(res, __LINE__).isErr())                        \
-                return noahh::Err(NOAHH_CONCAT(res, __LINE__).unwrapErr()); \
-            variable = NOAHH_CONCAT(res, __LINE__).unwrap()
+        #define NOAHH_UNWRAP_INTO(variable, ...)                                       \
+            auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                            \
+            if (NOAHH_CONCAT(res, __LINE__).isErr())                                   \
+                return noahh::Err(std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr()); \
+            variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap()
     #endif
 
 namespace noahh {
@@ -81,8 +81,10 @@ namespace noahh {
             OkType m_ok;
 
             constexpr explicit OkContainer(OkType&& ok
-            ) noexcept(std::is_nothrow_constructible_v<OkType, OkType>) :
-                m_ok(std::forward<OkType>(ok)) {}
+            ) noexcept(std::is_nothrow_move_constructible_v<OkType>) : m_ok(std::move(ok)) {}
+
+            constexpr explicit OkContainer(OkType const& ok
+            ) noexcept(std::is_nothrow_copy_constructible_v<OkType>) : m_ok(ok) {}
 
         public:
             constexpr OkType&& unwrap() && noexcept {
@@ -144,8 +146,10 @@ namespace noahh {
             ErrType m_err;
 
             constexpr explicit ErrContainer(ErrType&& err
-            ) noexcept(std::is_nothrow_constructible_v<ErrType, ErrType>) :
-                m_err(std::forward<ErrType>(err)) {}
+            ) noexcept(std::is_nothrow_move_constructible_v<ErrType>) : m_err(std::move(err)) {}
+
+            constexpr explicit ErrContainer(ErrType const& err
+            ) noexcept(std::is_nothrow_copy_constructible_v<ErrType>) : m_err(err) {}
 
         public:
             constexpr ErrType&& unwrap() && noexcept {
@@ -1456,7 +1460,7 @@ namespace noahh {
                 return std::move(*this).asOk();
             }
             else {
-                return Err(operation(std::forward<ErrType>(this->unwrapErr())));
+                return Err(operation(std::move(*this).unwrapErr()));
             }
         }
 
