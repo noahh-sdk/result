@@ -178,17 +178,17 @@ TEST_CASE("Misc") {
         }
     }
 
-    SECTION("Let macros") {
+    SECTION("Unwrap If Macros") {
         SECTION("Ok") {
             auto res = divideConstexpr(32, 2);
-            if (NOAHH_LET_OK(value, res)) {
+            if (NOAHH_UNWRAP_IF_OK(value, res)) {
                 REQUIRE(value == 16);
             }
             else {
                 FAIL("Expected the block to be executed");
             }
 
-            if (NOAHH_LET_ERR(value, res)) {
+            if (NOAHH_UNWRAP_IF_ERR(value, res)) {
                 FAIL("Expected the block to not be executed");
             }
             else {
@@ -198,14 +198,14 @@ TEST_CASE("Misc") {
 
         SECTION("Err") {
             auto res = divideConstexpr(32, 0);
-            if (NOAHH_LET_ERR(value, res)) {
+            if (NOAHH_UNWRAP_IF_ERR(value, res)) {
                 REQUIRE(value == -1);
             }
             else {
                 FAIL("Expected the block to be executed");
             }
 
-            if (NOAHH_LET_OK(value, res)) {
+            if (NOAHH_UNWRAP_IF_OK(value, res)) {
                 FAIL("Expected the block to not be executed");
             }
             else {
@@ -215,20 +215,27 @@ TEST_CASE("Misc") {
 
         SECTION("Some") {
             auto res = divideConstexpr(32, 2);
-            if (NOAHH_LET_SOME(value, res.ok())) {
+            if (NOAHH_UNWRAP_IF_SOME(value, res.ok())) {
                 REQUIRE(value == 16);
             }
             else {
                 FAIL("Expected the block to be executed");
             }
 
-            if (NOAHH_LET_SOME(value, res.err())) {
+            if (NOAHH_UNWRAP_IF_SOME(value, res.err())) {
                 FAIL("Expected the block to not be executed");
             }
             else {
                 REQUIRE(true);
             }
         }
+    }
+
+    SECTION("Unwrap Into Else") {
+        NOAHH_UNWRAP_INTO_ELSE(value, divideConstexpr(32, 2)) {
+            FAIL("Expected the block to not be executed");
+        }
+        REQUIRE(value == 16);
     }
 
     SECTION("Operator*") {

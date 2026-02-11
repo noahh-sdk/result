@@ -40,28 +40,37 @@
             variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap()
     #endif
 
-    #if !defined(NOAHH_LET_OK)
-        #define NOAHH_LET_OK(variable, ...)                                                        \
+    #if !defined(NOAHH_UNWRAP_IF_OK)
+        #define NOAHH_UNWRAP_IF_OK(variable, ...)                                                  \
             auto [variable, NOAHH_CONCAT(res, __LINE__)] =                                         \
                 std::make_pair(noahh::impl::ResultOkType<decltype(__VA_ARGS__)>{}, (__VA_ARGS__)); \
             NOAHH_CONCAT(res, __LINE__).isOk() &&                                                  \
                 (variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), true)
     #endif
 
-    #if !defined(NOAHH_LET_ERR)
-        #define NOAHH_LET_ERR(variable, ...)                                                        \
+    #if !defined(NOAHH_UNWRAP_IF_ERR)
+        #define NOAHH_UNWRAP_IF_ERR(variable, ...)                                                  \
             auto [variable, NOAHH_CONCAT(res, __LINE__)] =                                          \
                 std::make_pair(noahh::impl::ResultErrType<decltype(__VA_ARGS__)>{}, (__VA_ARGS__)); \
             NOAHH_CONCAT(res, __LINE__).isErr() &&                                                  \
                 (variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), true)
     #endif
 
-    #if !defined(NOAHH_LET_SOME)
-        #define NOAHH_LET_SOME(variable, ...)                                                      \
+    #if !defined(NOAHH_UNWRAP_IF_SOME)
+        #define NOAHH_UNWRAP_IF_SOME(variable, ...)                                                \
             auto [variable, NOAHH_CONCAT(res, __LINE__)] =                                         \
                 std::make_pair(noahh::impl::OptionalType<decltype(__VA_ARGS__)>{}, (__VA_ARGS__)); \
             NOAHH_CONCAT(res, __LINE__).has_value() &&                                             \
                 (variable = std::move(NOAHH_CONCAT(res, __LINE__)).value(), true)
+    #endif
+
+    #if !defined(NOAHH_UNWRAP_INTO_ELSE)
+        #define NOAHH_UNWRAP_INTO_ELSE(variable, ...)                       \
+            noahh::impl::ResultOkType<decltype(__VA_ARGS__)> variable;      \
+            auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                 \
+            if (NOAHH_CONCAT(res, __LINE__).isOk())                         \
+                variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(); \
+            else
     #endif
 
 namespace noahh {

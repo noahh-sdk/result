@@ -269,7 +269,6 @@ TEST_CASE("Normal") {
         auto res4 = res3.flatten();
         REQUIRE(res4.unwrapErr() == "Division by zero");
     }
-}
 
     SECTION("equality") {
         Result<float, std::string> res1 = Ok(32.f);
@@ -285,3 +284,4 @@ TEST_CASE("Normal") {
         REQUIRE(res3 == Err("Division by zero"));
         // REQUIRE(res3 != Err(32.f)); // compilation error
     }
+}
