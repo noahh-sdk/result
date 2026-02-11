@@ -7,7 +7,7 @@
 
 #if !defined(NOAHH_CONCAT)
     #define NOAHH_CONCAT2(x, y) x##y
-    #define NOAHH_CONCAT(...) NOAHH_CONCAT2(__VA_ARGS__)
+    #define NOAHH_CONCAT(x, y) NOAHH_CONCAT2(x, y)
 #endif
 
 #if !defined(NOAHH_UNWRAP)
