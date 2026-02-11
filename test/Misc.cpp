@@ -49,6 +49,13 @@ Result<void, void> divideVoidOkVoidErr(int a, int b) {
     }
 }
 
+// Test the special NOAHH_UNWRAP macro on void unwrap
+Result<int, int> unwrapVoidOk() {
+    auto lambda = []() -> Result<void, int> { return Ok(); };
+    NOAHH_UNWRAP(lambda());
+    return Ok(10);
+}
+
 TEST_CASE("Misc") {
     SECTION("Void Err") {
         SECTION("Ok") {
