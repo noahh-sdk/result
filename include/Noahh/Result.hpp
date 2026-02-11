@@ -77,10 +77,10 @@
             noahh::impl::ResultOkType<std::remove_cvref_t<decltype(__VA_ARGS__)>> okVariable;       \
             auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                                         \
             if (noahh::impl::ResultErrType<std::remove_cvref_t<decltype(__VA_ARGS__)>> errVariable; \
-                NOAHH_CONCAT(res, __LINE__).isOk() ||                                               \
-                (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), false))          \
-                okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap();                       \                \
-            else
+                NOAHH_CONCAT(res, __LINE__).isErr() &&                                              \
+                    (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), true) ||     \
+                (okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap(), false))
+
     #endif
 
     #if !defined(NOAHH_UNWRAP_EITHER)
