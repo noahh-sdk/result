@@ -73,11 +73,13 @@
     #endif
 
     #if !defined(NOAHH_UNWRAP_OR_ELSE)
-        #define NOAHH_UNWRAP_OR_ELSE(variable, ...)                                         \
-            noahh::impl::ResultOkType<std::remove_cvref_t<decltype(__VA_ARGS__)>> variable; \
-            auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                                 \
-            if (NOAHH_CONCAT(res, __LINE__).isOk())                                         \
-                variable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap();                 \
+        #define NOAHH_UNWRAP_OR_ELSE(okVariable, errVariable, ...)                                  \
+            noahh::impl::ResultOkType<std::remove_cvref_t<decltype(__VA_ARGS__)>> okVariable;       \
+            auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                                         \
+            if (noahh::impl::ResultErrType<std::remove_cvref_t<decltype(__VA_ARGS__)>> errVariable; \
+                NOAHH_CONCAT(res, __LINE__).isOk() ||                                               \
+                (errVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrapErr(), false))          \
+                okVariable = std::move(NOAHH_CONCAT(res, __LINE__)).unwrap();                       \                \
             else
     #endif
 
