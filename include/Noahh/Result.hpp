@@ -5,6 +5,23 @@
 #include <variant>
 #include <optional>
 
+#if !defined(NOAHH_CONCAT)
+    #define NOAHH_CONCAT2(x, y) x##y
+    #define NOAHH_CONCAT(...) NOAHH_CONCAT2(__VA_ARGS__)
+#endif
+
+#if !defined(NOAHH_UNWRAP)
+    #define NOAHH_UNWRAP(...)                                   \
+    if (auto res = __VA_ARGS__; res.isErr()) return noahh::Err(res.unwrapErr())
+#endif
+
+#if !defined (NOAHH_UNWRAP_INTO)
+    #define NOAHH_UNWRAP_INTO(variable, ...)                                             \
+    auto NOAHH_CONCAT(res, __LINE__) = __VA_ARGS__;                                      \
+    if (NOAHH_CONCAT(res, __LINE__).isErr()) return noahh::Err(NOAHH_CONCAT(res, __LINE__).unwrapErr()); \
+    variable = NOAHH_CONCAT(res, __LINE__).unwrap()
+#endif
+
 namespace noahh {
     template <class OkType, class ErrType>
     class Result;
